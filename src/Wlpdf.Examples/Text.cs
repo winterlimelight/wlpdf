@@ -10,7 +10,7 @@ namespace Wlpdf.Examples
     {
         public static void AddTextStandardFont()
         {
-            var pdf = PdfDocument.FromFile("../../../../../pdfs/sample.pdf"); // PdfDocument.FromFile("../../../../../pdfs/Sibelius8.pdf");
+            var pdf = PdfDocument.FromFile("../../../../../pdfs/Sibelius8.pdf");
 
             var fText = new Font("/Type1", "/Helvetica");
             var helveticaId = pdf.AddObject(fText).ObjectNumber;

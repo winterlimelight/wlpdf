@@ -28,13 +28,13 @@ namespace Wlpdf.Writing
                 PdfCrossReference[] xrefs = _doc.GetObjects().ToArray();
                 foreach (PdfCrossReference xref in xrefs)
                 {
-                    if (xref.Object is XrefObject)
-                        continue;
-
                     _writer.Flush();
 
                     if(xref.EntryType == XrefEntryType.Used)
                         xref.Offset = (int)_writer.BaseStream.Position;
+
+                    if (xref.Object is XrefObject)
+                        continue;
 
                     WriteIndirectObject(xref);
                 }

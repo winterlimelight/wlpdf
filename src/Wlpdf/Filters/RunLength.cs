@@ -104,7 +104,10 @@ namespace Wlpdf.Filters
             if (repeatCount >= 1)
                 completeRepeatWithCurrent(bytes[bytes.Length - 1]);
             else
+            {
+                literal.Add(bytes[bytes.Length - 1]);
                 completeLiteral();
+            }
 
             return encoded.ToArray();
         }
