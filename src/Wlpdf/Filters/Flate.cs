@@ -2,7 +2,7 @@
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using Wlpdf.Types;
+using Wlpdf.Types.Basic;
 
 namespace Wlpdf.Filters
 {
@@ -18,9 +18,9 @@ namespace Wlpdf.Filters
             if (decodeParams != null)
             {
                 if (decodeParams.ContainsKey("/Predictor"))
-                    _predictor = (decodeParams["/Predictor"] as PdfSimple<int>).Value;
+                    _predictor = decodeParams["/Predictor"] as PdfNumeric;
                 if (decodeParams.ContainsKey("/Columns"))
-                    _columns = (decodeParams["/Columns"] as PdfSimple<int>).Value;
+                    _columns = decodeParams["/Columns"] as PdfNumeric;
             }
         }
 

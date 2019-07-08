@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Wlpdf.Filters;
 using Wlpdf.Types;
+using Wlpdf.Types.Basic;
+using Wlpdf.Types.Common;
+using Wlpdf.Types.Object;
 
 namespace Wlpdf.Reading
 {
@@ -77,22 +78,22 @@ namespace Wlpdf.Reading
             var entries = new List<PdfCrossReference>();
 
             _lexer.Next();
-            while (Accept(TokenType.Numeric))
+            while (Accept(TokenType.Integer))
             {
                 int objectId = (int)_lexer.Current.Value;
 
                 _lexer.Next();
-                Expect(TokenType.Numeric);
+                Expect(TokenType.Integer);
                 int count = (int)_lexer.Current.Value;
 
                 for (int i = 0; i < count; i++)
                 {
                     _lexer.Next();
-                    Expect(TokenType.Numeric);
+                    Expect(TokenType.Integer);
                     int offset = (int)_lexer.Current.Value;
 
                     _lexer.Next();
-                    Expect(TokenType.Numeric);
+                    Expect(TokenType.Integer);
                     int generation = (int)_lexer.Current.Value;
 
                     _lexer.Next();
@@ -128,13 +129,13 @@ namespace Wlpdf.Reading
 
                 _lexer.Seek(indirectObj.Offset);
                 _lexer.Next();
-                Expect(TokenType.Numeric);
+                Expect(TokenType.Integer);
             }
 
             int objectNumber = (int)_lexer.Current.Value;
 
             _lexer.Next();
-            Expect(TokenType.Numeric);
+            Expect(TokenType.Integer);
             int generation = (int)_lexer.Current.Value;
 
             if (indirectObj == null)
@@ -238,27 +239,28 @@ namespace Wlpdf.Reading
             }
             else if (Accept(TokenType.String))
             {
-                return new PdfSimple<string>() { Value = (string)_lexer.Current.Value };
+                return new PdfString((string)_lexer.Current.Value);
             }
             else if (Accept(TokenType.HexString))
             {
                 return new PdfHexString() { Text = (string)_lexer.Current.Value };
             }
-            else if (Accept(TokenType.Numeric))
+            else if (Accept(TokenType.Real))
             {
-                if (_lexer.Current.Value is double)
-                    return new PdfSimple<double>() { Value = (double)_lexer.Current.Value };
-
+                return new PdfNumeric((double)_lexer.Current.Value);
+            }
+            else if (Accept(TokenType.Integer))
+            { 
                 // if it's an integer we need to see if it is an int value or a reference
                 int value1 = (int)_lexer.Current.Value;
 
                 Token[] peek = _lexer.Peek(2);
-                if (peek[0].Type != TokenType.Numeric || peek[1].Type != TokenType.NonObjectString || peek[0].Value is double)
-                    return new PdfSimple<int>() { Value = value1 };
+                if (peek[0].Type != TokenType.Integer || peek[1].Type != TokenType.NonObjectString || peek[0].Value is double)
+                    return new PdfNumeric(value1);
 
                 // it's a reference - consume it
                 _lexer.Next();
-                Expect(TokenType.Numeric);
+                Expect(TokenType.Integer);
                 int value2 = (int)_lexer.Current.Value;
 
                 _lexer.Next();
@@ -271,7 +273,7 @@ namespace Wlpdf.Reading
             }
             else if (Accept(TokenType.Boolean))
             {
-                return new PdfSimple<bool>() { Value = (bool)_lexer.Current.Value };
+                return new PdfBoolean((bool)_lexer.Current.Value);
             }
             else if (Accept(TokenType.Null))
                 return new PdfNull();
@@ -283,11 +285,11 @@ namespace Wlpdf.Reading
             if (!dict.ContainsKey("/Length"))
                 throw new ParserException($"Stream is missing length information");
 
-            var length = dict.Get<PdfSimple<int>>("/Length");
-            if (length.Value <= 0)
+            var length = dict.Get<PdfNumeric>("/Length");
+            if (length <= 0)
                 throw new ParserException($"Stream is missing length information");
 
-            byte[] data = _lexer.Take(length.Value);
+            byte[] data = _lexer.Take(length);
 
             var stream = new PdfStream();
             stream.Copy(dict);
@@ -355,7 +357,7 @@ namespace Wlpdf.Reading
         private bool IsIndirectObjectDefinition()
         {
             Token[] next = _lexer.Peek(2);
-            return _lexer.Current.Type == TokenType.Numeric && next[0].Type == TokenType.Numeric && next[1].Type == TokenType.Object;
+            return _lexer.Current.Type == TokenType.Integer && next[0].Type == TokenType.Integer && next[1].Type == TokenType.Object;
         }
     }
 }

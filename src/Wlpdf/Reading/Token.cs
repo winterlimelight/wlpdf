@@ -3,7 +3,7 @@
     internal enum TokenType
     {
         Whitespace = 1, MagicNumber, Null,
-        Boolean, Numeric, NonObjectString, String, HexString, Name,
+        Boolean, Integer, Real, NonObjectString, String, HexString, Name,
         Array, EndArray, Dict, EndDict,
         Stream, EndStream, Object, EndObject,
         Xref, Trailer, StartXref

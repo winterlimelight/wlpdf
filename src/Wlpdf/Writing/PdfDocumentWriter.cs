@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Wlpdf.Types;
+using Wlpdf.Types.Basic;
+using Wlpdf.Types.Common;
+using Wlpdf.Types.Object;
 
 namespace Wlpdf.Writing
 {
@@ -101,11 +104,11 @@ namespace Wlpdf.Writing
                 WriteReference(obj as PdfReference);
             else if (obj is PdfName)
                 AsciiToOutput($"{(obj as PdfName).Name}");
-            else if (obj is PdfSimple<string>)
-                WriteString(obj as PdfSimple<string>);
-            else if (obj is PdfSimple<bool>)
-                WriteBoolean(obj as PdfSimple<bool>);
-            else if (obj.GetType().Name.StartsWith("PdfSimple"))
+            else if (obj is PdfString)
+                WriteString(obj as PdfString);
+            else if (obj is PdfBoolean)
+                WriteBoolean(obj as PdfBoolean);
+            else if (obj is PdfNumeric)
                 AsciiToOutput(obj.ToString());
             else if (obj is PdfHexString)
                 WriteHexString(obj as PdfHexString);
@@ -122,7 +125,7 @@ namespace Wlpdf.Writing
                 for (int i = pdfStreamObject.Filters.Length - 1; i >= 0; i--)
                     data = pdfStreamObject.Filters[i].Encode(data);
 
-            pdfStreamObject.Add(new PdfName() { Name = "/Length" }, new PdfSimple<int>() { Value = data.Length });
+            pdfStreamObject.Add(new PdfName() { Name = "/Length" }, new PdfNumeric(data.Length));
             WriteDictionary(pdfStreamObject);
 
             AsciiToOutput("stream\n");
@@ -158,14 +161,14 @@ namespace Wlpdf.Writing
             AsciiToOutput($"{pdfReference.ObjectNumber} {pdfReference.Generation} R");
         }
 
-        private void WriteString(PdfSimple<string> pdfSimple)
+        private void WriteString(PdfString pdfString)
         {
             byte [] bytes;
-            bool useUnicode = pdfSimple.Value.Any(c => c >= 128);
+            bool useUnicode = pdfString.ToString().Any(c => c >= 128);
             if (useUnicode)
-                bytes = System.Text.Encoding.BigEndianUnicode.GetBytes(pdfSimple.Value);
+                bytes = System.Text.Encoding.BigEndianUnicode.GetBytes(pdfString);
             else
-                bytes = System.Text.Encoding.ASCII.GetBytes(pdfSimple.Value);
+                bytes = System.Text.Encoding.ASCII.GetBytes(pdfString);
 
             var escaped = new List<byte>();
             escaped.Add((byte)'(');
@@ -185,9 +188,9 @@ namespace Wlpdf.Writing
             AsciiToOutput($"<{pdfHexString.Text}>");
         }
 
-        private void WriteBoolean(PdfSimple<bool> pdfSimple)
+        private void WriteBoolean(PdfBoolean pdfBoolean)
         {
-            AsciiToOutput(pdfSimple.Value ? "true" : "false");
+            AsciiToOutput(pdfBoolean ? "true" : "false");
         }
 
         private void AsciiToOutput(string s)

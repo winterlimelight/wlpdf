@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Wlpdf.Reading;
+using Wlpdf.Types.Basic;
+using Wlpdf.Types.Common;
+using Wlpdf.Types.Object;
 
 namespace Wlpdf.Types
 {

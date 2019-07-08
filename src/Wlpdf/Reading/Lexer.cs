@@ -205,7 +205,9 @@ namespace Wlpdf.Reading
                 c = (char)_s[++_at];
 
             string s = new string(System.Text.Encoding.ASCII.GetChars(_s, _offset, _at - _offset));
-            return SetToken(TokenType.Numeric, s.Contains(".") ? (object)double.Parse(s) : (object)int.Parse(s));
+            if(s.Contains("."))
+                return SetToken(TokenType.Real, double.Parse(s));
+            return SetToken(TokenType.Integer, int.Parse(s));
         }
 
 

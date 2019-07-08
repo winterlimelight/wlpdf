@@ -19,6 +19,8 @@ namespace Wlpdf.Examples
             var pages = objects.Where(o => o.Object is Page).Select(io => io.Object as Page);
             foreach (var page in pages)
             {
+                float fromTop = page.MediaBox.Rectangle.Top - 40;
+
                 string content = "q\n" + page.Contents.ToString() + "Q\n"; // use q/Q to clear any graphics-state/co-ordinate transforms
                 content += $@"
 q
@@ -27,7 +29,7 @@ q
 /GSa gs
 BT
 /F{helveticaId} 8 Tf
-0 830 Td
+0 {fromTop} Td
 (omg omg omg) Tj
 ET
 Q
