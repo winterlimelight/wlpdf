@@ -28,9 +28,7 @@ namespace Wlpdf.Reading
 
             if (Accept(TokenType.Xref))
             {
-                var xrefObj = new XrefObject();
-                xrefObj.SetEntries(ParseXref());
-                _doc.Xref = xrefObj;
+                _doc.Xref = new XrefObject(ParseXref());
 
                 // ParseXref overreads, so no need to _lexer.Next() here
                 Expect(TokenType.Trailer);
@@ -42,7 +40,7 @@ namespace Wlpdf.Reading
             else if (IsIndirectObjectDefinition())
             {
                 _doc.Xref = ParseIndirectObjectDefinition(null).Object as XrefObject;
-                _doc.Trailer = new Trailer(_doc.Xref);
+                _doc.Trailer = new Trailer((_doc.Xref as ITypedObject).Dict);
             }
             else
                 throw new ParserException("No cross-reference table found");
@@ -193,16 +191,14 @@ namespace Wlpdf.Reading
 
                 if (dict is PdfStream)
                 {
-                    IPdfStream stream = null;
+                    PdfStream stream = dict as PdfStream;
                     switch (objType)
                     {
-                        case "/XRef": stream = new XrefObject(); break;
-                        case "/ObjStm": stream = new ObjectStream(_doc); break;
-                        case "/XObject": stream = new XObject(); break;
+                        case "/XRef": return new XrefObject(stream);
+                        case "/ObjStm": return new ObjectStream(_doc, stream);
+                        case "/XObject": return new XObject(stream);
                         default: throw new ParserException($"Unknown stream type {objType}");
                     }
-                    stream.SetFromStream(dict as PdfStream);
-                    return stream;
                 }
 
                 switch (objType)

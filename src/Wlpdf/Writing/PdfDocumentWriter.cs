@@ -94,8 +94,8 @@ namespace Wlpdf.Writing
 
         private void WriteObject(IPdfObject obj)
         {
-            if (obj is PdfStream)
-                WriteStreamObject(obj as PdfStream);
+            if (obj is IPdfStream)
+                WriteStreamObject(obj as IPdfStream);
             else if (obj is PdfDictionary)
                 WriteDictionary(obj as PdfDictionary);
             else if (obj is PdfArray)
@@ -118,15 +118,12 @@ namespace Wlpdf.Writing
                 throw new Exception("Unknown object while writing");
         }
 
-        private void WriteStreamObject(PdfStream pdfStreamObject)
+        private void WriteStreamObject(IPdfStream pdfStreamObject)
         {
-            byte[] data = pdfStreamObject.Stream;
-            if (pdfStreamObject.Filters != null)
-                for (int i = pdfStreamObject.Filters.Length - 1; i >= 0; i--)
-                    data = pdfStreamObject.Filters[i].Encode(data);
+            byte[] data = pdfStreamObject.GetEncoded();
 
-            pdfStreamObject.Add(new PdfName() { Name = "/Length" }, new PdfNumeric(data.Length));
-            WriteDictionary(pdfStreamObject);
+            pdfStreamObject.Dict.Add(new PdfName() { Name = "/Length" }, new PdfNumeric(data.Length));
+            WriteDictionary(pdfStreamObject.Dict);
 
             AsciiToOutput("stream\n");
             _writer.Write(data);
