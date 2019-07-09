@@ -8,6 +8,6 @@ namespace Wlpdf.Types
     public interface IPdfStream : IPdfObject
     {
         byte[] GetEncoded();
-        PdfDictionary Dict { get; } // TODO IPdfDictionary or ITypedObject interface?
+        PdfDictionary Dict { get; } // TODO IPdfDictionary or ITypedObject interface? (or neither)
     }
 }
