@@ -6,33 +6,43 @@ using Wlpdf.Types.Common;
 
 namespace Wlpdf.Types
 {
-    public class Font : PdfDictionary, IPdfObject
+    public class Font : IPdfTypedObject
     {
         private UnicodeCMap _toUnicode;
 
         public Font(PdfName subtype, PdfName baseFont)
         {
-            this["/Type"] = new PdfName() { Name = "/Font" };
-            this["/Subtype"] = subtype;
-            this["/BaseFont"] = baseFont;
+            Dict = new PdfDictionary
+            {
+                ["/Type"] = new PdfName() { Name = "/Font" },
+                ["/Subtype"] = subtype,
+                ["/BaseFont"] = baseFont
+            };
         }
 
-        public Font(PdfDictionary dict) : base(dict) { }
+        public Font(PdfDictionary dict)
+        {
+            Dict = dict;
+        }
+
+        public string TypeName { get { return "/Font"; } }
+        public PdfDictionary Dict { get; private set; }
+
 
         private UnicodeCMap ToUnicode
         {
             get
             {
-                if (!ContainsKey("/ToUnicode"))
+                if (!Dict.ContainsKey("/ToUnicode"))
                     return null;
                 if (_toUnicode == null)
-                    _toUnicode = new UnicodeCMap(GetReferencedObject<PdfStream>("/ToUnicode"));
+                    _toUnicode = new UnicodeCMap(Dict.GetReferencedObject<PdfStream>("/ToUnicode"));
                 return _toUnicode;
             }
         }
 
-        public string BaseFont { get { return Get<PdfName>("/BaseFont")?.Name; } }
-        public string SubType { get { return Get<PdfName>("/Subtype")?.Name; } }
+        public string BaseFont { get { return Dict.Get<PdfName>("/BaseFont")?.Name; } }
+        public string SubType { get { return Dict.Get<PdfName>("/Subtype")?.Name; } }
 
         public string GetHexCharCode(int glyph)
         {

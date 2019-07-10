@@ -96,6 +96,8 @@ namespace Wlpdf.Writing
         {
             if (obj is IPdfStream)
                 WriteStreamObject(obj as IPdfStream);
+            else if (obj is IPdfTypedObject)
+                WriteDictionary((obj as IPdfTypedObject).Dict);
             else if (obj is PdfDictionary)
                 WriteDictionary(obj as PdfDictionary);
             else if (obj is PdfArray)

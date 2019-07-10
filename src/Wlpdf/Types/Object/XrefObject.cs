@@ -6,7 +6,7 @@ using Wlpdf.Types.Common;
 
 namespace Wlpdf.Types.Object
 {
-    internal class XrefObject : IPdfStream, ITypedObject
+    internal class XrefObject : IPdfTypedObject, IPdfStream
     {
         private List<PdfCrossReference> _entries;
         private PdfStream _stream;
@@ -17,6 +17,7 @@ namespace Wlpdf.Types.Object
             Decode(stream.Stream);
         }
 
+        public string TypeName { get { return "/XRef"; } }
         public PdfDictionary Dict { get => _stream; }
 
         public XrefObject(IEnumerable<PdfCrossReference> entries)

@@ -5,9 +5,9 @@ using Wlpdf.Types.Basic;
 
 namespace Wlpdf.Types
 {
-    public interface IPdfStream : IPdfObject
+    public interface IPdfTypedObject : IPdfObject
     {
-        byte[] GetEncoded();
+        string TypeName { get; }
         PdfDictionary Dict { get; }
     }
 }

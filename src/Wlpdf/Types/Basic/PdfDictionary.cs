@@ -32,7 +32,7 @@ namespace Wlpdf.Types.Basic
                 this[kvp.Key] = kvp.Value;
         }
 
-        protected T GetReferencedObject<T>(string name) where T : class, IPdfObject
+        public T GetReferencedObject<T>(string name) where T : class, IPdfObject
         {
             // The idea is that (eventually) there would be .Add() methods (probably on, or using the PdfDoc) that would
             // create a new object in the document, a new reference to it, and assign the reference to a dictionary entry

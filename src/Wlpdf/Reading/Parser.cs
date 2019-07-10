@@ -40,7 +40,7 @@ namespace Wlpdf.Reading
             else if (IsIndirectObjectDefinition())
             {
                 _doc.Xref = ParseIndirectObjectDefinition(null).Object as XrefObject;
-                _doc.Trailer = new Trailer((_doc.Xref as ITypedObject).Dict);
+                _doc.Trailer = new Trailer((_doc.Xref as IPdfTypedObject).Dict);
             }
             else
                 throw new ParserException("No cross-reference table found");

@@ -5,7 +5,7 @@ using Wlpdf.Types.Basic;
 
 namespace Wlpdf.Types
 {
-    public class XObject : IPdfStream
+    public class XObject : IPdfTypedObject, IPdfStream
     {
         private PdfStream _stream;
 
@@ -14,6 +14,7 @@ namespace Wlpdf.Types
             _stream = stream;
         }
 
+        public string TypeName { get { return "/XObject"; } }
         public PdfDictionary Dict { get { return _stream as PdfDictionary;  } }
 
         public byte[] GetEncoded()

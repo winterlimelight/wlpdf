@@ -5,7 +5,7 @@ using Wlpdf.Types.Basic;
 
 namespace Wlpdf.Types
 {
-    public class ObjectStream : IPdfStream
+    public class ObjectStream : IPdfTypedObject, IPdfStream
     {
         private readonly PdfDocument _doc;
         private PdfStream _stream;
@@ -20,6 +20,7 @@ namespace Wlpdf.Types
             _objects = parser.ParseObjectStream().ToArray();
         }
 
+        public string TypeName { get { return "/ObjStm"; } }
         public PdfDictionary Dict { get { return _stream as PdfDictionary; } }
 
         // TODO write _stream - if we added to the ObjectStream we'd need to update Stream

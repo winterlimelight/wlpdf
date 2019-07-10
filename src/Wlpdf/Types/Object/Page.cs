@@ -5,7 +5,7 @@ using Wlpdf.Types.Common;
 
 namespace Wlpdf.Types
 {
-    public class Page : PdfDictionary, IPdfObject
+    public class Page : IPdfTypedObject
     {
         private ContentStream _contents;
 
@@ -19,16 +19,22 @@ namespace Wlpdf.Types
             }
         }
 
-        public Page(PdfDictionary dict) : base(dict) { }
+        public Page(PdfDictionary dict)
+        {
+            Dict = dict;
+        }
+
+        public string TypeName { get { return "/Page"; } }
+        public PdfDictionary Dict { get; private set; }
 
         private void ParseContents()
         {
-            _contents = new ContentStream(GetReferencedObject<PdfStream>("/Contents"));
+            _contents = new ContentStream(Dict.GetReferencedObject<PdfStream>("/Contents"));
         }
 
         public PdfRectangle MediaBox
         {
-            get { return new PdfRectangle(this["/MediaBox"] as PdfArray); }
+            get { return new PdfRectangle(Dict["/MediaBox"] as PdfArray); }
         }
     }
 }
