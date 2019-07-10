@@ -54,6 +54,11 @@ namespace Wlpdf.Types
             return Xref.AddEntry(obj);
         }
 
+        public PdfReference GetIndirectReference(PdfCrossReference xref)
+        {
+            return new PdfReference(this) { ObjectNumber = xref.ObjectNumber, Generation = xref.Generation };
+        }
+
         internal IPdfObject ResolveReference(PdfReference reference)
         {
             PdfCrossReference indirectObj = Xref.Get(reference.ObjectNumber, reference.Generation);

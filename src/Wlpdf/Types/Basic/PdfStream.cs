@@ -4,27 +4,23 @@ using Wlpdf.Filters;
 
 namespace Wlpdf.Types.Basic
 {
-    public class PdfStream : PdfDictionary, IPdfStream
+    public class PdfStream : IPdfStream
     {
         public byte[] Stream { get; private set; }
+        public PdfDictionary Dict { get; private set; }
 
-        internal IFilter[] Filters { get; private set; }
-
-        public virtual void Copy(PdfStream stream)
+        public PdfStream(PdfDictionary dict)
         {
-            Stream = stream.Stream;
-            Filters = stream.Filters;
-            base.Copy(stream);
+            Dict = dict;
         }
-
-        public PdfDictionary Dict { get => this; }
 
         public byte[] GetEncoded()
         {
             byte[] data = Stream;
-            if (Filters != null)
-                for (int i = Filters.Length - 1; i >= 0; i--)
-                    data = Filters[i].Encode(data);
+
+            var filters = GetFilters();
+            for (int i = filters.Length - 1; i >= 0; i--)
+                data = filters[i].Encode(data);
             return data;
         }
 
@@ -35,31 +31,21 @@ namespace Wlpdf.Types.Basic
 
         public void SetStream(byte[] data)
         {
-            Remove(new PdfName() { Name = "/Length" });
-            Stream = data;
+            Dict.Remove(new PdfName() { Name = "/Length" });
 
-            if (!ContainsKey("/Filter"))
-                return;
-
-            var filterObj = Get<IPdfObject>("/Filter");
-            if (filterObj is PdfArray)
-                Filters = (filterObj as PdfArray).Cast<PdfName>().Select(n => GetFilter(n)).ToArray();
-            else if (filterObj is PdfName)
-                Filters = new IFilter[] { GetFilter(filterObj as PdfName) };
-
-            foreach (var filter in Filters)
+            foreach (var filter in GetFilters())
                 data = filter.Decode(data);
             Stream = data;
 
             // TEMP - we haven't built encoding handling for difference filtering
-            Remove(new PdfName() { Name = "/DecodeParms" });
+            Dict.Remove(new PdfName() { Name = "/DecodeParms" });
         }
 
         private IFilter GetFilter(PdfName pdfName)
         {
             PdfDictionary decodeParams = null;
-            if (ContainsKey("/DecodeParms"))
-                decodeParams = this["/DecodeParms"] as PdfDictionary;
+            if (Dict.ContainsKey("/DecodeParms"))
+                decodeParams = Dict["/DecodeParms"] as PdfDictionary;
 
             switch (pdfName.Name)
             {
@@ -67,6 +53,20 @@ namespace Wlpdf.Types.Basic
                 case RunLength.Name: return new RunLength();
                 default: throw new Exception($"Filter {pdfName.Name} unknown");
             }
+        }
+
+        private IFilter[] GetFilters()
+        {
+            if (!Dict.ContainsKey("/Filter"))
+                return Array.Empty<IFilter>();
+
+            var filterObj = Dict.Get<IPdfObject>("/Filter");
+            if (filterObj is PdfArray)
+                return (filterObj as PdfArray).Cast<PdfName>().Select(n => GetFilter(n)).ToArray();
+            else if (filterObj is PdfName)
+                return new IFilter[] { GetFilter(filterObj as PdfName) };
+
+            return Array.Empty<IFilter>();
         }
     }
 }

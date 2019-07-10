@@ -34,7 +34,17 @@ namespace Wlpdf.Types
 
         public PdfRectangle MediaBox
         {
-            get { return new PdfRectangle(Dict["/MediaBox"] as PdfArray); }
+            get { return new PdfRectangle(Dict.Get<PdfArray>("/MediaBox")); }
+        }
+
+        public string AddXObject(PdfReference xref)
+        {
+            var resources = Dict.Get<PdfDictionary>("/Resources");
+            var xobjects = resources.Get<PdfDictionary>("/XObject");
+
+            string key = "/Xo" + xref.ObjectNumber;
+            xobjects[key] = xref;
+            return key;
         }
     }
 }

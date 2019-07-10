@@ -7,7 +7,8 @@ namespace Wlpdf.Examples
         static void Main(string[] args)
         {
             // TODO - console app with various choices of which example to run based on command line arg
-            Text.AddTextStandardFont();
+            //AddText.AddTextStandardFont();
+            AddImage.Add32bppWithTransparency();
         }
     }
 }

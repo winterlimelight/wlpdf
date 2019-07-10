@@ -18,7 +18,7 @@ namespace Wlpdf.Types.Object
         }
 
         public string TypeName { get { return "/XRef"; } }
-        public PdfDictionary Dict { get => _stream; }
+        public PdfDictionary Dict { get => _stream.Dict; }
 
         public XrefObject(IEnumerable<PdfCrossReference> entries)
         {

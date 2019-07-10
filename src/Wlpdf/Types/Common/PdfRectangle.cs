@@ -14,13 +14,13 @@ namespace Wlpdf.Types.Common
         {
             if (ary.Count != 4)
                 throw new ArgumentException();
-            /*v TODO ar ary2 = ary.Select(a => (a as PdfSimple<float>).Value).ToArray();
+            var ary2 = ary.Select(a => (float)(a as PdfNumeric)).ToArray();
 
             float lowerLeftX = ary2[0];
             float lowerLeftY = ary2[1];
             float upperRightX = ary2[2];
             float upperRightY = ary2[3];
-            _rect = new RectangleF(lowerLeftX, lowerLeftY, upperRightX - lowerLeftX, upperRightY - lowerLeftY);*/
+            _rect = new RectangleF(lowerLeftX, lowerLeftY, upperRightX - lowerLeftX, upperRightY - lowerLeftY);
         }
 
         // TODO if settor, then need ToPdfArray()

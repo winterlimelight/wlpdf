@@ -152,15 +152,14 @@ namespace Wlpdf.Reading
             {
                 if (!(obj is PdfDictionary))
                     throw new ParserException("Stream objects must be preceded by a dictionary");
-                obj = ParseStream(obj as PdfDictionary);
+                obj = SetObjectType(indirectObj, ParseStream(obj as PdfDictionary));
 
                 _lexer.Next();
             }
+            else if (obj is PdfDictionary)
+                obj = SetObjectType(indirectObj, obj as PdfDictionary);
 
             Expect(TokenType.EndObject);
-
-            if (obj is PdfDictionary)
-                obj = SetObjectType(indirectObj, obj as PdfDictionary);
 
             indirectObj.Object = obj;
             indirectObj.Loaded = true;
@@ -188,19 +187,6 @@ namespace Wlpdf.Reading
             if (dict.ContainsKey("/Type"))
             {
                 string objType = dict.Get<PdfName>("/Type").Name;
-
-                if (dict is PdfStream)
-                {
-                    PdfStream stream = dict as PdfStream;
-                    switch (objType)
-                    {
-                        case "/XRef": return new XrefObject(stream);
-                        case "/ObjStm": return new ObjectStream(_doc, stream);
-                        case "/XObject": return new XObject(stream);
-                        default: throw new ParserException($"Unknown stream type {objType}");
-                    }
-                }
-
                 switch (objType)
                 {
                     case "/Catalog": return new Catalog(dict);
@@ -215,6 +201,22 @@ namespace Wlpdf.Reading
 
             return dict;
         }
+
+        private IPdfStream SetObjectType(PdfCrossReference xref, PdfStream stream)
+        {
+            if (!stream.Dict.ContainsKey("/Type"))
+                return stream;
+
+            string objType = stream.Dict.Get<PdfName>("/Type").Name;
+            switch (objType)
+            {
+                case "/XRef": return new XrefObject(stream);
+                case "/ObjStm": return new ObjectStream(_doc, stream);
+                case "/XObject": return new XObject(stream);
+                default: throw new ParserException($"Unknown stream type {objType}");
+            }
+        }
+
 
         private IPdfObject ParseObject()
         {
@@ -287,8 +289,7 @@ namespace Wlpdf.Reading
 
             byte[] data = _lexer.Take(length);
 
-            var stream = new PdfStream();
-            stream.Copy(dict);
+            var stream = new PdfStream(dict);
             stream.SetStream(data);
 
             _lexer.Next();

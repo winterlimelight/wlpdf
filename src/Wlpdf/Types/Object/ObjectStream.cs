@@ -21,7 +21,7 @@ namespace Wlpdf.Types
         }
 
         public string TypeName { get { return "/ObjStm"; } }
-        public PdfDictionary Dict { get { return _stream as PdfDictionary; } }
+        public PdfDictionary Dict { get { return _stream.Dict; } }
 
         // TODO write _stream - if we added to the ObjectStream we'd need to update Stream
         public byte[] GetEncoded()

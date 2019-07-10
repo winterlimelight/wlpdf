@@ -8,11 +8,6 @@ namespace Wlpdf.Types.Basic
     {
         public PdfDictionary() { }
 
-        public PdfDictionary(PdfDictionary dict)
-        {
-            Copy(dict);
-        }
-
         public T Get<T>(string key) where T : class, IPdfObject
         {
             if (!ContainsKey(key))
@@ -24,12 +19,6 @@ namespace Wlpdf.Types.Basic
                 obj = (obj as PdfReference).GetTarget();
 
             return obj as T;
-        }
-
-        public void Copy(PdfDictionary dict)
-        {
-            foreach (var kvp in dict)
-                this[kvp.Key] = kvp.Value;
         }
 
         public T GetReferencedObject<T>(string name) where T : class, IPdfObject
