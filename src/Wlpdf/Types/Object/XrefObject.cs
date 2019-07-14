@@ -11,14 +11,27 @@ namespace Wlpdf.Types.Object
         private List<PdfCrossReference> _entries;
         private PdfStream _stream;
 
-        public XrefObject(PdfStream stream)
+        public XrefObject(PdfStream stream, int objectNumber)
         {
             _stream = stream;
             Decode(stream.Stream);
+
+            // we are using Xref as the store of all indirect object references, so we need to make sure the xref stream object is included
+            if(_entries.FirstOrDefault(x => x.ObjectNumber == objectNumber) == null)
+            {
+                _entries.Add(new PdfCrossReference() {
+                    EntryType = XrefEntryType.Used,
+                    ObjectNumber = objectNumber,
+                    Loaded = true,
+                    Object = this
+                });
+                UpdateStream();
+            }
         }
 
         public string TypeName { get { return "/XRef"; } }
         public PdfDictionary Dict { get => _stream.Dict; }
+        public bool IsStream { get { return _stream != null; } }
 
         public XrefObject(IEnumerable<PdfCrossReference> entries)
         {
@@ -50,7 +63,6 @@ namespace Wlpdf.Types.Object
         {
             int[] fieldWidths = GetFieldSizes();
 
-            // TODO - at present we're assuming sequential object numbers starting from 0 - so /Index is left unchanged
             var data = new byte[_entries.Count * fieldWidths.Sum()];
             int inx = 0;
             foreach(PdfCrossReference xref in _entries)
@@ -74,6 +86,11 @@ namespace Wlpdf.Types.Object
                 inx += fieldWidths[2];
             }
             _stream.UpdateStream(data);
+
+            Dict["/Size"] = new PdfNumeric(_entries.Count);
+            // TODO - at present we're assuming sequential object numbers starting from 0 - so /Index is default (not required)
+            if (Dict.ContainsKey("/Index"))
+                Dict.Remove("/Index");
         }
 
         internal IEnumerable<PdfCrossReference> GetIndirectObjects()
@@ -105,9 +122,12 @@ namespace Wlpdf.Types.Object
                 sections = (Dict["/Index"] as PdfArray).Select(o => (int)(o as PdfNumeric)).ToArray();
                 if (sections.Length % 2 != 0)
                     throw new ArgumentException("/Index length must be even");
-                sectionsInx = 0;
-                objNo = sections[sectionsInx];
             }
+            else
+                sections = new[] { 0, (Dict["/Size"] as PdfNumeric) };
+
+            sectionsInx = 0;
+            objNo = sections[sectionsInx];
 
             // create functions to pull values and convert to integers
             var getFieldFns = new Func<int, int?>[3];
@@ -122,25 +142,20 @@ namespace Wlpdf.Types.Object
             _entries = new List<PdfCrossReference>();
             for (int i = 0; i < stream.Length; i += entryWidth)
             {
-                // update object numbering where required
-                if (sections != null)
+                // update object numbering
+                int sectionStartNo = sections[sectionsInx];
+                int sectionLen = sections[sectionsInx + 1];
+                if (objNo - sectionStartNo >= sectionLen)
                 {
-                    int sectionStartNo = sections[sectionsInx];
-                    int sectionLen = sections[sectionsInx + 1];
-                    if (objNo - sectionStartNo >= sectionLen)
-                    {
-                        sectionsInx += 2;
-                        objNo = sections[sectionsInx];
-                    }
+                    // moved onto a new section
+                    sectionsInx += 2;
+                    objNo = sections[sectionsInx];
                 }
 
                 int type = getFieldFns[0](i) ?? 1;
                 if (type < 0 || type > 2)
                     throw new ArgumentException("Xref table first entry must be 0, 1, or 2");
                 XrefEntryType xrefType = (XrefEntryType)type;
-
-                if (xrefType == XrefEntryType.Used && sections == null)
-                    throw new ArgumentException("/Index is required for Used type entries");
 
                 // type 0 - obj no of next free, type 1 - file offset, type 2 - object no of the stream (gen 0 assumed)
                 int field2 = getFieldFns[1](i) ?? 0;

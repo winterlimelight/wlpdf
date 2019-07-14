@@ -26,6 +26,7 @@ namespace Wlpdf.Reading
 
             _lexer.Next();
 
+            bool streamXref = false;
             if (Accept(TokenType.Xref))
             {
                 _doc.Xref = new XrefObject(ParseXref());
@@ -36,14 +37,25 @@ namespace Wlpdf.Reading
                 _lexer.Next();
                 Expect(TokenType.Dict);
                 _doc.Trailer = new Trailer(ParseDictionary());
+
+                if (_doc.Trailer.ContainsKey("/XRefStm"))
+                {
+                    streamXref = true;
+                    PdfNumeric offset = _doc.Trailer["/XRefStm"] as PdfNumeric;
+                    _lexer.Seek(offset);
+                    _lexer.Next();
+                }
             }
             else if (IsIndirectObjectDefinition())
+                streamXref = true;
+            else
+                throw new ParserException("No cross-reference table found");
+
+            if (streamXref)
             {
                 _doc.Xref = ParseIndirectObjectDefinition(null).Object as XrefObject;
                 _doc.Trailer = new Trailer((_doc.Xref as IPdfTypedObject).Dict);
             }
-            else
-                throw new ParserException("No cross-reference table found");
 
             // Load all the indirect objects. If they are out of order then PdfDocument reference handling will lazy load dependents
             foreach (PdfCrossReference obj in _doc.GetObjects())
@@ -210,13 +222,12 @@ namespace Wlpdf.Reading
             string objType = stream.Dict.Get<PdfName>("/Type").Name;
             switch (objType)
             {
-                case "/XRef": return new XrefObject(stream);
+                case "/XRef": return new XrefObject(stream, xref.ObjectNumber);
                 case "/ObjStm": return new ObjectStream(_doc, stream);
                 case "/XObject": return new XObject(stream);
-                default: throw new ParserException($"Unknown stream type {objType}");
+                default: return stream;
             }
         }
-
 
         private IPdfObject ParseObject()
         {

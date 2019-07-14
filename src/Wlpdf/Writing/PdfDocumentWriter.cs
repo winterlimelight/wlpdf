@@ -45,11 +45,10 @@ namespace Wlpdf.Writing
                 long startXref = _writer.BaseStream.Position;
 
                 // xref
-                bool isV1p5 = float.Parse(_doc.Version) >= 1.5;
-                if (isV1p5) // >= 1.5 uses stream object
+                if (_doc.Xref.IsStream)
                 {
                     _doc.Xref.UpdateStream();
-                    int objNo = xrefs.Single(x => x.Object is XrefObject).ObjectNumber; 
+                    int objNo = xrefs.Single(x => x.Object is XrefObject).ObjectNumber;
                     AsciiToOutput($"{objNo} 0 obj\n");
                     WriteStreamObject(_doc.Xref);
                     AsciiToOutput("\nendobj\n");

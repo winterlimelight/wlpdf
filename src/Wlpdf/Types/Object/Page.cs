@@ -42,6 +42,12 @@ namespace Wlpdf.Types
             var resources = Dict.Get<PdfDictionary>("/Resources");
             var xobjects = resources.Get<PdfDictionary>("/XObject");
 
+            if(xobjects == null)
+            {
+                xobjects = new PdfDictionary();
+                resources["/XObject"] = xobjects;
+            }
+
             string key = "/Xo" + xref.ObjectNumber;
             xobjects[key] = xref;
             return key;

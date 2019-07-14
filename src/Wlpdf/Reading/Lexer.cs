@@ -32,11 +32,18 @@ namespace Wlpdf.Reading
 
             while(!IsEof())
             {
+                if(IsComment())
+                {
+                    ConsumeComment();
+                    continue;
+                }
+
                 if (IsWhitespace())
                 { 
                     ConsumeWhitespace();
                     continue;
                 }
+
                 if (TryKeyword("true"))
                     return SetToken(TokenType.Boolean, true);
                 if (TryKeyword("false"))
@@ -172,6 +179,16 @@ namespace Wlpdf.Reading
             return Current;
         }
 
+        private void ConsumeComment()
+        {
+            char c = (char)_s[_at++];
+            while (!IsEof() && c != '\r' || c != '\n')
+                c = (char)_s[_at++];
+
+            ConsumeWhitespace();
+            _offset = _at;
+        }
+
         private void ConsumeWhitespace()
         {
             while (!IsEof() && IsWhitespace())
@@ -179,12 +196,6 @@ namespace Wlpdf.Reading
                 _at++;
                 _offset = _at;
             }
-        }
-
-
-        private void ConsumeStream()
-        {
-            // TODO - another while loop I'm guessing....
         }
 
         private Token ConsumeName()
@@ -209,7 +220,6 @@ namespace Wlpdf.Reading
                 return SetToken(TokenType.Real, double.Parse(s));
             return SetToken(TokenType.Integer, int.Parse(s));
         }
-
 
         private Token ConsumeNonObjectString()
         {
@@ -297,6 +307,12 @@ namespace Wlpdf.Reading
             return SetToken(tt, null);
         }
 
+        private bool IsComment()
+        {
+            char c = (char)_s[_at];
+            return c == '%';
+        }
+
         private bool IsWhitespace()
         {
             byte b = _s[_at];
@@ -325,8 +341,8 @@ namespace Wlpdf.Reading
             if (!IsText(str))
                 return false;
 
-            // peek whitespace - do not consume
-            if(!IsWhitespace())
+            // peek next
+            if(!IsWhitespace() && !IsDelimiter())
                 return false;
 
             return true;

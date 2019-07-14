@@ -12,7 +12,7 @@ namespace Wlpdf.Examples
     {
         public static void Add32bppWithTransparency()
         {
-            var pdf = PdfDocument.FromFile("../../../../../pdfs/Sibelius8.pdf");
+            var pdf = PdfDocument.FromFile("../../../../../pdfs/Word2016.pdf");
             var img = Image.FromFile("../../../32bpp.png");
 
             // create XObject
@@ -40,7 +40,7 @@ Q
 ";
                 page.Contents.SetContent(content);
             }
-
+            
             pdf.Save("out.pdf");
         }
     }
