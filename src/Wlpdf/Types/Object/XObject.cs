@@ -26,6 +26,7 @@ namespace Wlpdf.Types
             {
                 _stream.Dict["/ColorSpace"] = new PdfName() { Name = "/DeviceRGB" };
                 _stream.Dict["/BitsPerComponent"] = new PdfNumeric(8);
+                _stream.Dict["/Filter"] = new PdfName() { Name = Filters.Flate.Name };
 
                 var streamBytes = new List<byte>();
                 var smaskBytes = new List<byte>();
@@ -40,22 +41,21 @@ namespace Wlpdf.Types
 
                         smaskBytes.Add(color.A);
                     }
-                _stream.SetStream(streamBytes.ToArray());
-
-                // TODO /Filter [ /RunLengthDecode ] - need to add encoding support.
+                _stream.UpdateStream(streamBytes.ToArray());
 
                 if (smaskBytes.Any(b => b != 255))
                 {
                     // create alpha-mask
                     var smaskStream = new PdfStream(new PdfDictionary());
                     var smask = new XObject(smaskStream);
-                    smaskStream.SetStream(smaskBytes.ToArray());
+                    smaskStream.UpdateStream(smaskBytes.ToArray());
 
                     smask.Dict["/Subtype"] = new PdfName() { Name = "/Image" };
                     smask.Dict["/Width"] = new PdfNumeric(img.Width);
                     smask.Dict["/Height"] = new PdfNumeric(img.Height);
                     smask.Dict["/ColorSpace"] = new PdfName() { Name = "/DeviceGray" };
                     smask.Dict["/BitsPerComponent"] = new PdfNumeric(8);
+                    smask.Dict["/Filter"] = new PdfName() { Name = Filters.Flate.Name };
 
                     _stream.Dict["/SMask"] = smask;
                 }
